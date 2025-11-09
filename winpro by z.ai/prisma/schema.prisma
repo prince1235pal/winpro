@@ -1,0 +1,110 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  password  String
+  name      String
+  email     String   @unique
+  role      String   @default("admin")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model App {
+  id          String   @id @default(cuid())
+  name        String
+  version     String
+  size        String
+  description String
+  category    String
+  filePath    String
+  fileName    String
+  isActive    Boolean  @default(true)
+  downloadCount Int    @default(0)
+  featured    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  downloadRecords Download[]
+}
+
+model Tournament {
+  id              String   @id @default(cuid())
+  title           String
+  description     String
+  game            String   @default("Free Fire")
+  prize           String
+  maxPlayers      Int
+  currentPlayers  Int      @default(0)
+  startDate       DateTime
+  endDate         DateTime
+  status          String   @default("upcoming") // upcoming, live, completed
+  rules           String
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  participants Participant[]
+}
+
+model Participant {
+  id           String   @id @default(cuid())
+  tournamentId String
+  playerName   String
+  playerEmail  String
+  playerPhone  String?
+  rank         Int?
+  score        Int?
+  status       String   @default("registered")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+}
+
+model SocialLink {
+  id        String   @id @default(cuid())
+  platform  String   // youtube, instagram, facebook, twitter, discord
+  url       String
+  isActive  Boolean  @default(true)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SiteSettings {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String
+  type        String   @default("text") // text, number, boolean, json
+  description String?
+  updatedAt   DateTime @updatedAt
+}
+
+model Download {
+  id        String   @id @default(cuid())
+  appId     String
+  ipAddress String
+  userAgent String
+  referer   String?
+  country   String?
+  city      String?
+  success   Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  app App @relation(fields: [appId], references: [id], onDelete: Cascade)
+}
